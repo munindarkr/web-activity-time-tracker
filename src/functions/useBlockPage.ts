@@ -17,5 +17,11 @@ export async function useBlockPage(
     Browser.runtime.getURL('src/block.html') +
     buildBlockQuery(domain, url, limitTime, summaryCounter, favicon);
   const tab = await Browser.tabs.query({ currentWindow: true, active: true });
-  await Browser.tabs.update(tab[0].id, { url: blockUrl });
+  if (tab[0]?.id == undefined) return;
+  try {
+    await Browser.tabs.update(tab[0].id, { url: blockUrl });
+  } catch (e) {
+    // The tab may have been closed before it could be redirected
+    if (!(e instanceof Error && e.message.startsWith('No tab with id'))) throw e;
+  }
 }
